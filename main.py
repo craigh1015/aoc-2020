@@ -90,3 +90,53 @@ def treesInSlope(right, down, mapLines):
         val = countTreeAt(pos, mapLine) if (row % down) == 0 else 0
         treeCount += val
     return treeCount
+
+
+passportKeys = ['byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid', 'cid']
+def lookupPassportKey(key):
+    return passportKeys.index(key)
+
+def parsePassportKeyVal(keyVal):
+    if keyVal == '':
+        return [99, '']
+    [key, value] = keyVal.split(':')
+    return [lookupPassportKey(key), value]
+
+
+def parsePassportLine(passportLine):
+    pairs = passportLine.split(' ')
+    return [parsePassportKeyVal(x) for x in pairs]
+
+
+def readPassports(fileName, rules):
+    passportLines = [parsePassportLine(line.rstrip('\n')) for line in open(fileName)]
+    passports = [[0, 0, 0, 0, 0, 0, 0, 0]]
+    for line in passportLines:
+        if line == [[99, '']]:
+            passports.append([0, 0, 0, 0, 0, 0, 0, 0])
+            continue
+        index = len(passports) - 1
+        for [key, value] in line:
+            passports[index][key] = 1 if rules[key](value) else 0
+    return passports
+
+passportRulesPresent = [
+    lambda x: True,
+    lambda x: True,
+    lambda x: True,
+    lambda x: True,
+    lambda x: True,
+    lambda x: True,
+    lambda x: True,
+    lambda x: True
+]
+passportRulesValid = [
+    lambda x: len(x) == 4 and 1920 <= int(x) <= 2002,
+    lambda x: len(x) == 4 and 2010 <= int(x) <= 2020,
+    lambda x: len(x) == 4 and 2020 <= int(x) <= 2030,
+    lambda x: (x[-2:] == 'cm' and 150 <= int(x[:-2]) <= 193) or (x[-2:] == 'in' and 59 <= int(x[:-2]) <= 76),
+    lambda x: re.fullmatch(r'#[\da-f]{6}', x) != None,
+    lambda x: re.fullmatch(r'(amb|blu|brn|gry|grn|hzl|oth)', x) != None,
+    lambda x: re.fullmatch(r'\d{9}', x) != None,
+    lambda x: True
+]

@@ -130,6 +130,7 @@ passportRulesPresent = [
     lambda x: True,
     lambda x: True
 ]
+
 passportRulesValid = [
     lambda x: len(x) == 4 and 1920 <= int(x) <= 2002,
     lambda x: len(x) == 4 and 2010 <= int(x) <= 2020,
@@ -140,3 +141,24 @@ passportRulesValid = [
     lambda x: re.fullmatch(r'\d{9}', x) != None,
     lambda x: True
 ]
+
+
+def parseBoardingPass(boardingPass):
+    value = boardingPass.replace('B', '1').replace('F','0').replace('R','1').replace('L','0')
+    return [int(value[:7],2), int(value[7:],2), int(value, 2)]
+
+
+def readBoardingPasses(fileName):
+    return [parseBoardingPass(line.rstrip('\n')) for line in open(fileName)]
+
+
+def findMissing(seats):
+    sorted_seats = sorted(seats)
+    a, b = 0, 0
+    results = []
+    for seat in sorted_seats:
+        a, b = b, seat
+        if b-a > 1:
+            results.append([a, b])
+    print(results)
+    return results

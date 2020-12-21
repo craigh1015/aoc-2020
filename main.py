@@ -69,3 +69,24 @@ def isValidPolicyAndPasswordOfficial(policyAndPassword):
     first = 1 if password[pMin-1] == pChar else 0
     second = 1 if password[pMax-1] == pChar else 0
     return (first + second ) == 1
+
+
+def parseMapLine(line):
+    return [1 if x == '#' else 0 for x in line]
+
+
+def countTreeAt(pos, mapLine):
+    return mapLine[pos % len(mapLine)]
+
+
+def readMap(fileName):
+    return [parseMapLine(line.rstrip('\n')) for line in open(fileName)]
+
+
+def treesInSlope(right, down, mapLines):
+    treeCount = 0
+    for (row, mapLine) in enumerate(mapLines):
+        pos = int(row / down) * right
+        val = countTreeAt(pos, mapLine) if (row % down) == 0 else 0
+        treeCount += val
+    return treeCount

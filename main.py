@@ -69,7 +69,7 @@ def isValidPolicyAndPasswordOfficial(policyAndPassword):
     [pMin, pMax, pChar, password] = policyAndPassword
     first = 1 if password[pMin-1] == pChar else 0
     second = 1 if password[pMax-1] == pChar else 0
-    return (first + second ) == 1
+    return (first + second) == 1
 
 
 def parseMapLine(line):
@@ -94,8 +94,11 @@ def treesInSlope(right, down, mapLines):
 
 
 passportKeys = ['byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid', 'cid']
+
+
 def lookupPassportKey(key):
     return passportKeys.index(key)
+
 
 def parsePassportKeyVal(keyVal):
     if keyVal == '':
@@ -110,7 +113,8 @@ def parsePassportLine(passportLine):
 
 
 def readPassports(fileName, rules):
-    passportLines = [parsePassportLine(line.rstrip('\n')) for line in open(fileName)]
+    passportLines = [parsePassportLine(line.rstrip('\n'))
+                     for line in open(fileName)]
     passports = [[0, 0, 0, 0, 0, 0, 0, 0]]
     for line in passportLines:
         if line == [[99, '']]:
@@ -120,6 +124,7 @@ def readPassports(fileName, rules):
         for [key, value] in line:
             passports[index][key] = 1 if rules[key](value) else 0
     return passports
+
 
 passportRulesPresent = [
     lambda x: True,
@@ -136,7 +141,8 @@ passportRulesValid = [
     lambda x: len(x) == 4 and 1920 <= int(x) <= 2002,
     lambda x: len(x) == 4 and 2010 <= int(x) <= 2020,
     lambda x: len(x) == 4 and 2020 <= int(x) <= 2030,
-    lambda x: (x[-2:] == 'cm' and 150 <= int(x[:-2]) <= 193) or (x[-2:] == 'in' and 59 <= int(x[:-2]) <= 76),
+    lambda x: (x[-2:] == 'cm' and 150 <= int(x[:-2]) <=
+               193) or (x[-2:] == 'in' and 59 <= int(x[:-2]) <= 76),
     lambda x: re.fullmatch(r'#[\da-f]{6}', x) != None,
     lambda x: re.fullmatch(r'(amb|blu|brn|gry|grn|hzl|oth)', x) != None,
     lambda x: re.fullmatch(r'\d{9}', x) != None,
@@ -145,8 +151,9 @@ passportRulesValid = [
 
 
 def parseBoardingPass(boardingPass):
-    value = boardingPass.replace('B', '1').replace('F','0').replace('R','1').replace('L','0')
-    return [int(value[:7],2), int(value[7:],2), int(value, 2)]
+    value = boardingPass.replace('B', '1').replace(
+        'F', '0').replace('R', '1').replace('L', '0')
+    return [int(value[:7], 2), int(value[7:], 2), int(value, 2)]
 
 
 def readBoardingPasses(fileName):
@@ -174,3 +181,48 @@ def readCustomForms(fileName, operation):
         index = len(groups) - 1
         groups[index].append(set(line))
     return [functools.reduce(operation, group) for group in groups]
+
+
+def parseBaggageRule(rule):
+    parts = rule.split(' bags contain ')
+    if parts[1] == "no other bags.":
+        return dict({parts[0]: []})
+    contents = list(map(lambda x: [int(x.split(' ')[0]), x.split(' ')[1] + ' ' + x.split(' ')[2]], parts[1].split(', ')))
+    return dict({parts[0]: contents})
+
+
+def readBaggageRules(fileName):
+    lines = [parseBaggageRule(line.rstrip('\n')) for line in open(fileName)]
+    rules = {}
+    for rule in lines:
+        rules.update(rule)
+    return rules
+
+
+def canContain(holder, content, baggageRules):
+    rules = baggageRules[holder]
+    if rules == []:
+        return False
+    for rule in rules:
+        if content == rule[1]:
+            return True
+        if canContain(rule[1], content, baggageRules):
+            return True
+    return False
+
+
+def getContainers(bag, baggageRules):
+    results = []
+    for holder in baggageRules.keys():
+        if canContain(holder, bag, baggageRules):
+            results.append(holder)
+    return results
+
+
+def countDeepContents(bag, count, baggageRules):
+    rules = baggageRules[bag]
+    total = count
+    if rules != []:
+        for rule in rules:
+            total += count * countDeepContents(rule[1], rule[0], baggageRules)
+    return total

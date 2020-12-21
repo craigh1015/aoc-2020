@@ -1,3 +1,4 @@
+import functools
 import re
 
 
@@ -160,5 +161,16 @@ def findMissing(seats):
         a, b = b, seat
         if b-a > 1:
             results.append([a, b])
-    print(results)
     return results
+
+
+def readCustomForms(fileName, operation):
+    lines = [line.rstrip('\n') for line in open(fileName)]
+    groups = [[]]
+    for line in lines:
+        if line == '':
+            groups.append([])
+            continue
+        index = len(groups) - 1
+        groups[index].append(set(line))
+    return [functools.reduce(operation, group) for group in groups]

@@ -1,3 +1,6 @@
+import re
+
+
 def getPairs(numbers):
     if len(numbers) < 2:
         return []
@@ -35,3 +38,34 @@ def getTriples(numbers):
 
     result = list(map(lambda x: [head, x[0], x[1]], pairs))
     return result + getTriples(rest)
+
+
+def parsePolicyAndPassword(policyAndPassword):
+    matches = re.search(
+        r'(?P<pMin>\d+)\-(?P<pMax>\d+) (?P<pChar>\w): (?P<password>\w+)', policyAndPassword)
+    pMin = int(matches.group('pMin'))
+    pMax = int(matches.group('pMax'))
+    pChar = matches.group('pChar')
+    password = matches.group('password')
+    return [pMin, pMax, pChar, password]
+
+
+def countCharInString(char, string):
+    return len(list(filter(lambda x: x == char, string)))
+
+
+def isValidPolicyAndPassword(policyAndPassword):
+    [pMin, pMax, pChar, password] = policyAndPassword
+    charCount = countCharInString(pChar, password)
+    return (pMin <= charCount) & (pMax >= charCount)
+
+
+def readPolicyAndPasswords(fileName):
+    return [parsePolicyAndPassword(line.rstrip('\n')) for line in open(fileName)]
+
+
+def isValidPolicyAndPasswordOfficial(policyAndPassword):
+    [pMin, pMax, pChar, password] = policyAndPassword
+    first = 1 if password[pMin-1] == pChar else 0
+    second = 1 if password[pMax-1] == pChar else 0
+    return (first + second ) == 1

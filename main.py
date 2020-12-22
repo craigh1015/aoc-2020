@@ -304,3 +304,24 @@ def runIterations(program):
         (state, failed) = runProgram(program_copy)
         if failed == False:
             return state
+
+
+##########
+### DAY 09
+
+
+def findInvalid(numbers, size):
+    for pos in range(size, len(numbers)):
+        sums = map(lambda x: x[1], getSums(getPairs(numbers[pos-size:pos])))
+        if numbers[pos] not in sums:
+            return numbers[pos]
+
+
+def findWeakness(numbers, invalid):
+    for start in range(len(numbers)):
+        for end in range(start, len(numbers)):
+            total = sum(numbers[start:end])
+            if total == invalid:
+                return numbers[start:end]
+            if total > invalid:
+                break

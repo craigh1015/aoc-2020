@@ -1,5 +1,10 @@
+import copy
 import functools
 import re
+
+
+##########
+### DAY 01
 
 
 def getPairs(numbers):
@@ -41,6 +46,10 @@ def getTriples(numbers):
     return result + getTriples(rest)
 
 
+##########
+### DAY 02
+
+
 def parsePolicyAndPassword(policyAndPassword):
     matches = re.search(
         r'(?P<pMin>\d+)\-(?P<pMax>\d+) (?P<pChar>\w): (?P<password>\w+)', policyAndPassword)
@@ -72,6 +81,10 @@ def isValidPolicyAndPasswordOfficial(policyAndPassword):
     return (first + second) == 1
 
 
+##########
+### DAY 03
+
+
 def parseMapLine(line):
     return [1 if x == '#' else 0 for x in line]
 
@@ -91,6 +104,10 @@ def treesInSlope(right, down, mapLines):
         val = countTreeAt(pos, mapLine) if (row % down) == 0 else 0
         treeCount += val
     return treeCount
+
+
+##########
+### DAY 04
 
 
 passportKeys = ['byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid', 'cid']
@@ -150,6 +167,10 @@ passportRulesValid = [
 ]
 
 
+##########
+### DAY 05
+
+
 def parseBoardingPass(boardingPass):
     value = boardingPass.replace('B', '1').replace(
         'F', '0').replace('R', '1').replace('L', '0')
@@ -171,6 +192,10 @@ def findMissing(seats):
     return results
 
 
+##########
+### DAY 06
+
+
 def readCustomForms(fileName, operation):
     lines = [line.rstrip('\n') for line in open(fileName)]
     groups = [[]]
@@ -181,6 +206,10 @@ def readCustomForms(fileName, operation):
         index = len(groups) - 1
         groups[index].append(set(line))
     return [functools.reduce(operation, group) for group in groups]
+
+
+##########
+### DAY 07
 
 
 def parseBaggageRule(rule):
@@ -226,3 +255,52 @@ def countDeepContents(bag, count, baggageRules):
         for rule in rules:
             total += count * countDeepContents(rule[1], rule[0], baggageRules)
     return total
+
+
+##########
+### DAY 08
+
+
+opCodes = ['nop', 'acc', 'jmp']
+
+
+def parseInstruction(instruction):
+    parts = instruction.split(' ')
+    return [opCodes.index(parts[0]), int(parts[1])]
+
+
+def readProgram(fileName):
+    return [parseInstruction(line.rstrip('\n')) for line in open(fileName)]
+
+
+instructions = [
+    lambda state, value: {'pc': state['pc'] + 1, 'acc': state['acc']},
+    lambda state, value: {'pc': state['pc'] + 1, 'acc': state['acc'] + value},
+    lambda state, value: {'pc': state['pc'] + value, 'acc': state['acc']},
+]
+
+def runInstruction(state, program):
+    instruction = program[state['pc']]
+    return instructions[instruction[0]](state, instruction[1])
+
+def runProgram(program):
+    history = [False] * len(program)
+    state = {'pc': 0, 'acc': 0}
+    infiniteLoop = False
+    while not infiniteLoop:
+        history[state['pc']] = True
+        state = runInstruction(state, program)
+        if state['pc'] == len(program):
+            break
+        infiniteLoop = history[state['pc']]
+    return state, infiniteLoop
+
+def runIterations(program):
+    for line in range(len(program)):
+        if program[line][0] == 1:
+            continue
+        program_copy = copy.deepcopy(program)
+        program_copy[line][0] = 2 if program[line][0] == 0 else 0
+        (state, failed) = runProgram(program_copy)
+        if failed == False:
+            return state
